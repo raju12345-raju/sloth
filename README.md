@@ -10,17 +10,11 @@ does. Built for the Hacktoberfest 2026 DEV Open-Source AI Challenge, Week 3:
 
 ## How it works
 
-```
-$ python sloth.py triage examples/brain-dump.txt
+## Demo
 
-🦥 Sloth says: do this first → URGENT: reply to client about the invoice
+Watch it triage a real brain-dump (41s, real Gemma output, no staging):
 
-#   Task                                     Effort  Why
-------------------------------------------------------------------
-1   URGENT: reply to client about invoice    30m     deadline pressure, asked twice
-2   fix the leaking kitchen sink             1h      hard deadline (Friday visit)
-...
-```
+https://github.com/raju12345-raju/sloth/raw/main/demo/sloth-demo.mp4
 
 The reasoning is done by **Gemma** (Google's open-weight model) running
 **locally via Ollama** — no API keys, no cloud, zero cost per run, and your

@@ -1,0 +1,38 @@
+[
+ {
+  "accent": true,
+  "body": "dump your brain. sloth sorts it.\n\nlocal Gemma 3 via Ollama - zero cost - works offline\nyour words never leave your machine\n\nHacktoberfest 2026 - Week 3: Slow and Steady",
+  "duration": 5,
+  "title": "Sloth - the lazy task triager"
+ },
+ {
+  "accent": false,
+  "body": "$ cat examples/brain-dump.txt\n\nfix the leaking kitchen sink before mom visits friday\nURGENT: reply to client about the invoice, they asked twice already\nbuy milk and eggs\nmaybe learn how sourdough works someday\nlol\ndentist appointment?? need to book\nprepare slides for monday standup\nidea: build a sloth-themed task app\ncall bank about the weird charge\nwater the plants (they're dying)\nhi",
+  "duration": 7,
+  "title": "the messy input"
+ },
+ {
+  "accent": false,
+  "body": "$ python sloth.py triage examples/brain-dump.txt\n\n[gemma3:1b thinking locally...]",
+  "duration": 4,
+  "title": "one command. zero organizing."
+ },
+ {
+  "accent": false,
+  "body": "[gemma:gemma3:1b 29027ms in=457 out=408 $0.00]\n\nSloth says: do this first -> fix the leaking kitchen sink\n\n#   Task                                     Effort  Why\n----------------------------------------------------------------------\n1   fix the leaking kitchen sink             30m     Prevent a plumbing disaster\n2   reply to client about the invoice        15m     Address a recurring issue\n3   buy milk and eggs                        15m     Essential for sustenance.\n4   maybe learn how sourdough works someday  2h      Future fun\n5   dentist appointment?? need to book       15m     Prevent a dental emergency.\n6   prepare slides for monday standup        2h      Essential for communication.\n7   idea: build a sloth-themed task app      4h      Creative outlet\n8   call bank about the weird charge         15m     Investigate a suspicious charge\n9   water the plants (they're dying)         10m     Basic self-care\n\nIgnored non-tasks: hi",
+  "duration": 14,
+  "title": "gemma triages it live (real run)"
+ },
+ {
+  "accent": false,
+  "body": "$ python sloth.py trace\n\ntime                  mode    model        ms     in   out   cost\n2026-10-19 22:10:53   gemma   gemma3:1b    29027  457  408   $0.00\n\nEvery run is traced: latency, tokens, cost. Always $0.00.",
+  "duration": 6,
+  "title": "the receipt - every run is traced"
+ },
+ {
+  "accent": true,
+  "body": "github.com/raju12345-raju/sloth\n\nMIT licensed - Python stdlib only - no pip install\n\nHacktoberfest 2026 DEV Challenge - Week 3: Slow and Steady",
+  "duration": 5,
+  "title": "be lazy. sloth sorts it."
+ }
+]

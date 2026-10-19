@@ -39,6 +39,10 @@ Rules:
 - Rank every real task 1-5 by impact-per-effort (1 = do first).
 - Estimate effort for each: one of 15m, 30m, 1h, 2h, 4h, 1d, 2d+.
 - Pick exactly one "sloth_pick": the single task to do first if the user is lazy.
+- "ignored" is ONLY for greetings, laughter and thanks (hi, hey, lol, haha, \
+thanks, ok). NEVER put a real task in "ignored" — a task is anything the user \
+needs to do, buy, fix, call, book, send, prepare, or remember. When in doubt, \
+it is a TASK, not ignored.
 - Keep task titles under 12 words. Be concrete, not motivational-poster fluff.
 
 Reply with ONLY valid JSON, no markdown fences, no commentary:
@@ -153,10 +157,41 @@ def render(result, json_out=False):
     print(f"{'#':<3} {'Task':<52} {'Effort':<7} Why")
     print("-" * 100)
     for i, t in enumerate(result["plan"], 1):
-        print(f"{i:<3} {t['task'][:50]:<52} {t['effort']:<7} {t['why'][:30]}")
+        task = str(t.get("task", "?"))[:50]
+        effort = str(t.get("effort", "?"))
+        why = str(t.get("why", ""))
+        print(f"{i:<3} {task:<52} {effort:<7} {why[:30]}")
     if result.get("ignored"):
         print("\nIgnored non-tasks: " + "; ".join(result["ignored"]))
     print()
+
+
+def normalize(result):
+    """Clean up 1B-model quirks: greetings in plan, placeholder text in ignored."""
+    noise = re.compile(r"^(hi|hey|hello|lol|haha|ok|thanks|note to self:?)$",
+                       re.I)
+    plan, ignored = [], list(result.get("ignored") or [])
+    for t in result.get("plan") or []:
+        title = str(t.get("task", "")).strip()
+        if noise.match(title):
+            if title not in ignored:
+                ignored.append(title)
+        else:
+            plan.append(t)
+    ignored = [x for x in ignored
+               if "<" not in str(x) and "non-task" not in str(x).lower()][:3]
+    result["plan"] = plan
+    result["ignored"] = ignored
+    if plan and not result.get("sloth_pick"):
+        result["sloth_pick"] = plan[0].get("task", "")
+    return result
+
+
+def looks_degenerate(result, raw):
+    """A 1B model sometimes dumps everything into 'ignored'. Catch it."""
+    input_lines = [ln for ln in raw.splitlines() if len(ln.strip()) > 3]
+    plan = result.get("plan") or []
+    return len(input_lines) >= 4 and len(plan) < 2
 
 
 def cmd_triage(args):
@@ -165,10 +200,20 @@ def cmd_triage(args):
         print("Nothing to triage — pipe in a brain-dump or pass a file.", file=sys.stderr)
         return 2
     try:
-        text, usage = call_ollama("Triage this brain-dump:\n\n" + raw, model=args.model)
+        prompt = "Triage this brain-dump:\n\n" + raw
+        text, usage = call_ollama(prompt, model=args.model)
         result = extract_json(text)
         if not isinstance(result.get("plan"), list) or not result.get("sloth_pick"):
             raise ValueError("model returned unexpected shape")
+        if looks_degenerate(result, raw):
+            # one retry with a firmer nudge; 1B models need it
+            text, usage = call_ollama(
+                prompt + "\n\nIMPORTANT: almost everything above is a real task. "
+                "Put at most 2 items in 'ignored'.", model=args.model)
+            result = extract_json(text)
+            if not isinstance(result.get("plan"), list) or not result.get("sloth_pick"):
+                raise ValueError("model returned unexpected shape on retry")
+        result = normalize(result)
         record_trace(usage, mode="gemma")
         if not args.quiet:
             u = usage

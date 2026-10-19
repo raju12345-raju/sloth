@@ -81,5 +81,24 @@ class TestTriageCommand(unittest.TestCase):
         self.assertEqual(code, 2)
 
 
+class TestNormalize(unittest.TestCase):
+    def test_greeting_moved_to_ignored(self):
+        r = sloth.normalize({"sloth_pick": "x",
+                             "plan": [{"task": "hi", "priority": 5,
+                                       "effort": "1m", "why": "greeting"},
+                                      {"task": "fix sink", "priority": 1,
+                                       "effort": "30m", "why": "leak"}],
+                             "ignored": []})
+        self.assertEqual(len(r["plan"]), 1)
+        self.assertIn("hi", r["ignored"])
+
+    def test_placeholder_ignored_dropped(self):
+        r = sloth.normalize({"sloth_pick": "x",
+                             "plan": [{"task": "fix sink", "priority": 1,
+                                       "effort": "30m", "why": "leak"}],
+                             "ignored": ["<non-task, max 3>", "lol"]})
+        self.assertEqual(r["ignored"], ["lol"])
+
+
 if __name__ == "__main__":
     unittest.main()
